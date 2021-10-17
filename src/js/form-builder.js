@@ -273,7 +273,7 @@ const FormBuilder = function (opts, element, $) {
    * @return {String} field options markup
    */
   const fieldOptions = function (fieldData) {
-    const { type, values } = fieldData
+    const { type, values, name } = fieldData
     let fieldValues
     const optionActions = [m('a', mi18n.get('addOption'), { className: 'add add-opt' })]
     const fieldOptions = [m('label', mi18n.get('selectOptions'), { className: 'false-label' })]
@@ -308,7 +308,7 @@ const FormBuilder = function (opts, element, $) {
       'ol',
       fieldValues.map((option, index) => {
         const optionData = config.opts.onAddOption(option, { type, index, isMultiple })
-        return selectFieldOptions(optionData, isMultiple)
+        return selectFieldOptions(optionData, isMultiple, name)
       }),
       {
         className: 'sortable-options',
@@ -323,6 +323,7 @@ const FormBuilder = function (opts, element, $) {
 
   const defaultFieldAttrs = type => {
     const defaultAttrs = ['required', 'label', 'description', 'placeholder', 'className', 'name', 'access', 'value']
+
     const noValFields = ['header', 'paragraph', 'file', 'autocomplete'].concat(d.optionFields)
 
     const valueField = !noValFields.includes(type)
@@ -1013,7 +1014,7 @@ const FormBuilder = function (opts, element, $) {
   }
 
   // Select field html, since there may be multiple
-  const selectFieldOptions = function (optionData, multipleSelect) {
+  const selectFieldOptions = function (optionData, multipleSelect, name) {
     const optionTemplate = { selected: false, label: '', value: '' }
     const optionInputType = {
       selected: multipleSelect ? 'checkbox' : 'radio',
@@ -1023,6 +1024,9 @@ const FormBuilder = function (opts, element, $) {
         const attrs = { value, type: optionInputType[prop] || 'checkbox' }
         if (value) {
           attrs.checked = !!value
+        }
+        if(optionInputType[prop] === 'radio') {
+          attrs.name = `${name}-option`
         }
         return ['input', null, attrs]
       },
@@ -1360,7 +1364,10 @@ const FormBuilder = function (opts, element, $) {
       index: $sortableOptions.children().length,
       isMultiple,
     })
-    $sortableOptions.append(selectFieldOptions(optionData, isMultiple))
+
+    const name = $firstOption.attr('name') ? $firstOption.attr('name').replace(/-option$/, '') : ''
+
+    $sortableOptions.append(selectFieldOptions(optionData, isMultiple, name))
   })
 
   $stage.on('mouseover mouseout', '.remove, .del-button', e => $(e.target).closest('li').toggleClass('delete'))
