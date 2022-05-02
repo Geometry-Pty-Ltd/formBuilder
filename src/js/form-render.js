@@ -81,7 +81,7 @@ class FormRender {
      * @param {Array} fields array of elements
      */
     if (typeof Element.prototype.appendFormFields !== 'function') {
-      Element.prototype.appendFormFields = function(fields) {
+      Element.prototype.appendFormFields = function (fields) {
         if (!Array.isArray(fields)) {
           fields = [fields]
         }
@@ -100,7 +100,7 @@ class FormRender {
             // Check if this rowID is created yet or not.
             let rowGroupNode = document.getElementById(rowID)
             if (!rowGroupNode) {
-              rowGroupNode = utils.markup('div', null, { id: rowID, className: 'row form-inline' })
+              rowGroupNode = utils.markup('div', null, { id: rowID, className: 'row' })
               renderedFormWrap.appendChild(rowGroupNode)
             }
             rowGroupNode.appendChild(field)
@@ -118,7 +118,7 @@ class FormRender {
      * Extend Element prototype to remove content
      */
     if (typeof Element.prototype.emptyContainer !== 'function') {
-      Element.prototype.emptyContainer = function() {
+      Element.prototype.emptyContainer = function () {
         const element = this
         while (element.lastChild) {
           element.removeChild(element.lastChild)
@@ -175,7 +175,7 @@ class FormRender {
     const opts = this.options
     element = this.getElement(element)
 
-    const runCallbacks = function() {
+    const runCallbacks = function () {
       if (opts.onRender) {
         opts.onRender()
       }
@@ -228,8 +228,8 @@ class FormRender {
     }
 
     if (opts.disableInjectedStyle) {
-        const styleTags = document.getElementsByClassName('formBuilder-injected-style')
-        forEach(styleTags, i => remove(styleTags[i]))
+      const styleTags = document.getElementsByClassName('formBuilder-injected-style')
+      forEach(styleTags, i => remove(styleTags[i]))
     }
     return formRender
   }
@@ -245,7 +245,7 @@ class FormRender {
     const fieldData = opts.formData
     if (!fieldData || Array.isArray(fieldData)) {
       throw new Error(
-        'To render a single element, please specify a single object of formData for the field in question'
+        'To render a single element, please specify a single object of formData for the field in question',
       )
     }
     const sanitizedField = this.santizeField(fieldData)
@@ -335,13 +335,14 @@ class FormRender {
   }
 }
 
-(function() {
+;(function ($) {
   let formRenderForms
   const methods = {
     init: (forms, options = {}) => {
       formRenderForms = forms
       methods.instance = new FormRender(options)
       forms.each(index => methods.instance.render(forms[index], index))
+
       return methods.instance
     },
     userData: () => methods.instance && methods.instance.userData,
@@ -355,6 +356,9 @@ class FormRender {
     render: (formData, options = {}) => {
       if (methods.instance) {
         const instance = methods.instance
+        if (!formData) {
+          formData = instance.options.formData
+        }
         instance.options = Object.assign({}, instance.options, options, { formData: instance.parseFormData(formData) })
         formRenderForms.each(index => methods.instance.render(formRenderForms[index], index))
       }
@@ -362,7 +366,7 @@ class FormRender {
     html: () => formRenderForms.map(index => formRenderForms[index]).html(),
   }
 
-  jQuery.fn.formRender = function(methodOrOptions = {}, ...args) {
+  $.fn.formRender = function (methodOrOptions = {}, ...args) {
     if (methods[methodOrOptions]) {
       return methods[methodOrOptions].apply(this, args)
     } else {
@@ -378,7 +382,7 @@ class FormRender {
    * @param {Object} options - optional subset of formRender options - doesn't support container or other form rendering based options.
    * @return {DOMElement} the rendered field
    */
-  jQuery.fn.controlRender = function(data, options = {}) {
+  $.fn.controlRender = function (data, options = {}) {
     options.formData = data
     options.dataType = typeof data === 'string' ? 'json' : 'xml'
     const formRender = new FormRender(options)
